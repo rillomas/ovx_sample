@@ -1,8 +1,15 @@
+#include <spdlog/spdlog.h>
+#include <cxxopts.hpp>
 #include <VX/vx.h>
 #include <VX/vxu.h>
-#include <iostream>
-#include <spdlog/spdlog.h>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 using namespace spdlog;
+
+enum ReturnValue {
+	OK,
+	ERROR
+};
 
 const char* vxStatusToStr (vx_status e) {
 #define VX_STATUS_TO_STR_ENTRY(E) case E: return #E;
@@ -57,11 +64,36 @@ const char* vxStatusToStr (vx_status e) {
   }
 
 int main(int argc, char** argv) {
+	cxxopts::Options options("ovx_sample", "Sample for OpenVX");
+	options
+		.add_options()
+		("i,input", "Path for input image", cxxopts::value<std::string>())
+		("o,output", "Path for output image", cxxopts::value<std::string>())
+		("h,help", "Print help");
+	auto result = options.parse(argc, argv);
+	if (result.count("help")) {
+		std::cout << options.help({""}) << std::endl;
+		return OK;
+	}
+	if (!result.count("i")) {
+		error("Input data path is required");
+		return ERROR;
+	}
+	auto in_path = result["i"].as<std::string>();
 	info("Initializing resources");
+	info("Reading input file: {}", in_path);
+	//const std::string path = "data/lena.png";
+	cv::Mat input = cv::imread(in_path);
+	if (input.empty()) {
+		error("Failed to read {}", in_path);
+		return ERROR;
+	}
+	cv::Mat output(input.size(), input.type());
+
 	vx_context context = vxCreateContext();
 	vx_graph graph = vxCreateGraph(context);
 	info("Releasing resources");
 	CHECK_VX_STATUS(vxReleaseGraph(&graph));
 	CHECK_VX_STATUS(vxReleaseContext(&context));
-	return 0;
+	return OK;
 }
