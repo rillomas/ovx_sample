@@ -16,4 +16,5 @@ executable(
     'ovx_sample',
     sources,
     include_directories:[vx_incdir, spdlog],
+    cpp_pch:'pch/header.hpp',
     dependencies:[vx])
