@@ -63,6 +63,43 @@ const char* vxStatusToStr (vx_status e) {
 		} \
   }
 
+vx_df_image mat_type_to_image_format(int mat_type)
+{
+	switch (mat_type) {
+	case CV_8UC1:
+			return VX_DF_IMAGE_U8;
+	case CV_16SC1:
+			return VX_DF_IMAGE_S16;
+	case CV_8UC3:
+			return VX_DF_IMAGE_RGB;
+	case CV_8UC4:
+			return VX_DF_IMAGE_RGBX;
+	default:
+			error("Unsupported format: {}", mat_type);
+			return 0;
+	}
+}
+
+vx_image create_image_from_mat(
+		vx_context ctx,
+		const cv::Mat& mat) {
+	vx_imagepatch_addressing_t format;
+	format.dim_x = mat.cols;
+	format.dim_y = mat.rows;
+	format.stride_x = mat.elemSize();
+	format.stride_y = mat.step;
+	format.scale_x = VX_SCALE_UNITY;
+	format.scale_y = VX_SCALE_UNITY;
+	format.step_x = 1;
+	format.step_y = 1;
+	return vxCreateImageFromHandle(
+			ctx,
+			mat_type_to_image_format(mat.type()),
+			&format,
+			(void**)&mat.data,
+			VX_MEMORY_TYPE_HOST);
+}
+
 int main(int argc, char** argv) {
 	cxxopts::Options options("ovx_sample", "Sample for OpenVX");
 	options
@@ -82,7 +119,6 @@ int main(int argc, char** argv) {
 	auto in_path = result["i"].as<std::string>();
 	info("Initializing resources");
 	info("Reading input file: {}", in_path);
-	//const std::string path = "data/lena.png";
 	cv::Mat input = cv::imread(in_path);
 	if (input.empty()) {
 		error("Failed to read {}", in_path);
@@ -92,7 +128,13 @@ int main(int argc, char** argv) {
 
 	vx_context context = vxCreateContext();
 	vx_graph graph = vxCreateGraph(context);
+	vx_image input_img = create_image_from_mat(context, input);
+	if (input_img == nullptr) {
+		error("Failed to convert input cv::Mat to vx_image");
+		return ERROR;
+	}
 	info("Releasing resources");
+	CHECK_VX_STATUS(vxReleaseImage(&input_img));
 	CHECK_VX_STATUS(vxReleaseGraph(&graph));
 	CHECK_VX_STATUS(vxReleaseContext(&context));
 	return OK;
