@@ -79,10 +79,7 @@ vx_df_image mat_type_to_image_format(int mat_type)
 			return 0;
 	}
 }
-
-vx_image create_image_from_mat(
-		vx_context ctx,
-		const cv::Mat& mat) {
+vx_imagepatch_addressing_t get_format(const cv::Mat& mat) {
 	vx_imagepatch_addressing_t format;
 	format.dim_x = mat.cols;
 	format.dim_y = mat.rows;
@@ -92,6 +89,13 @@ vx_image create_image_from_mat(
 	format.scale_y = VX_SCALE_UNITY;
 	format.step_x = 1;
 	format.step_y = 1;
+	return format;
+}
+
+vx_image create_image_from_mat(
+		vx_context ctx,
+		const cv::Mat& mat) {
+	auto format = get_format(mat);
 	return vxCreateImageFromHandle(
 			ctx,
 			mat_type_to_image_format(mat.type()),
@@ -116,15 +120,21 @@ int main(int argc, char** argv) {
 		error("Input data path is required");
 		return ERROR;
 	}
+	if (!result.count("o")) {
+		error("Output data path is required");
+		return ERROR;
+	}
 	auto in_path = result["i"].as<std::string>();
+	auto out_path = result["o"].as<std::string>();
 	info("Initializing resources");
 	info("Reading input file: {}", in_path);
-	cv::Mat input = cv::imread(in_path);
+	// We read as grayscale since most of the OpenVX
+	// nodes only support VX_DF_IMAGE_U8 input/output
+	cv::Mat input = cv::imread(in_path, cv::IMREAD_GRAYSCALE);
 	if (input.empty()) {
 		error("Failed to read {}", in_path);
 		return ERROR;
 	}
-	cv::Mat output(input.size(), input.type());
 
 	vx_context context = vxCreateContext();
 	vx_graph graph = vxCreateGraph(context);
@@ -133,8 +143,49 @@ int main(int argc, char** argv) {
 		error("Failed to convert input cv::Mat to vx_image");
 		return ERROR;
 	}
+	cv::Mat output(input.size(), input.type());
+	auto format = get_format(output);
+	vx_image output_img = vxCreateImageFromHandle(
+			context,
+			VX_DF_IMAGE_U8,
+			&format,
+			(void**)&input.data,
+			VX_MEMORY_TYPE_HOST);
+	//vxCreateImageFromHandle(context, )
+	//vx_image output_img = vxCreateImage(context, input.cols, input.rows, VX_DF_IMAGE_U8);
+	// Construct graph and execute
+	vxGaussian3x3Node(graph, input_img, output_img);
+	CHECK_VX_STATUS(vxVerifyGraph(graph));
+	CHECK_VX_STATUS(vxProcessGraph(graph));
+
+	// Transfer ownership to cv::Mat and write output image to file
+	vx_rectangle_t output_rect = {0, 0, (uint32_t)output.cols, (uint32_t)output.rows};
+	void* p = nullptr;
+	const uint32_t plane_index = 0;
+	vx_map_id output_map;
+	vx_imagepatch_addressing_t addr;
+	CHECK_VX_STATUS(vxMapImagePatch(
+			output_img,
+			&output_rect,
+			plane_index,
+			&output_map,
+			&addr,
+			&p,
+			VX_READ_ONLY,
+			VX_MEMORY_TYPE_HOST,
+			0));
+	bool ok = cv::imwrite(out_path, output);
+	if (!ok) {
+		error("Output to {} failed", out_path);
+		return ERROR;
+	}
+	info("Output to {}", out_path);
+	// Relase ownership
+	vxUnmapImagePatch(output_img, output_map);
+
 	info("Releasing resources");
 	CHECK_VX_STATUS(vxReleaseImage(&input_img));
+	CHECK_VX_STATUS(vxReleaseImage(&output_img));
 	CHECK_VX_STATUS(vxReleaseGraph(&graph));
 	CHECK_VX_STATUS(vxReleaseContext(&context));
 	return OK;
