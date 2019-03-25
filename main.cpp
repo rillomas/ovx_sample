@@ -147,12 +147,10 @@ int main(int argc, char** argv) {
 	auto format = get_format(output);
 	vx_image output_img = vxCreateImageFromHandle(
 			context,
-			VX_DF_IMAGE_U8,
+			mat_type_to_image_format(output.type()),
 			&format,
-			(void**)&input.data,
+			(void**)&output.data,
 			VX_MEMORY_TYPE_HOST);
-	//vxCreateImageFromHandle(context, )
-	//vx_image output_img = vxCreateImage(context, input.cols, input.rows, VX_DF_IMAGE_U8);
 	// Construct graph and execute
 	vxGaussian3x3Node(graph, input_img, output_img);
 	CHECK_VX_STATUS(vxVerifyGraph(graph));
