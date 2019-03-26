@@ -68,16 +68,16 @@ vx_df_image mat_type_to_image_format(int mat_type)
 {
 	switch (mat_type) {
 	case CV_8UC1:
-			return VX_DF_IMAGE_U8;
+		return VX_DF_IMAGE_U8;
 	case CV_16SC1:
-			return VX_DF_IMAGE_S16;
+		return VX_DF_IMAGE_S16;
 	case CV_8UC3:
-			return VX_DF_IMAGE_RGB;
+		return VX_DF_IMAGE_RGB;
 	case CV_8UC4:
-			return VX_DF_IMAGE_RGBX;
+		return VX_DF_IMAGE_RGBX;
 	default:
-			error("Unsupported format: {}", mat_type);
-			return 0;
+		error("Unsupported format: {}", mat_type);
+		return 0;
 	}
 }
 vx_imagepatch_addressing_t get_format(const cv::Mat& mat) {
