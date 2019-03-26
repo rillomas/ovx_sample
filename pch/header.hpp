@@ -1,3 +1,4 @@
+#include <chrono>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <VX/vx.h>

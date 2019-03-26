@@ -1,3 +1,4 @@
+#include <chrono>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <VX/vx.h>
@@ -154,7 +155,22 @@ int main(int argc, char** argv) {
 	// Construct graph and execute
 	vxGaussian3x3Node(graph, input_img, output_img);
 	CHECK_VX_STATUS(vxVerifyGraph(graph));
-	CHECK_VX_STATUS(vxProcessGraph(graph));
+
+	constexpr int ITERATIONS = 30;
+	std::vector<std::chrono::microseconds> time;
+	for (int i=0; i<ITERATIONS; i++) {
+		auto start = std::chrono::high_resolution_clock::now();
+		CHECK_VX_STATUS(vxProcessGraph(graph));
+		auto end = std::chrono::high_resolution_clock::now();
+		time.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-start));
+	}
+
+	for (const auto& t : time) {
+		info("time: {} usec", t.count());
+	}
+	auto sum = std::accumulate(std::begin(time), std::end(time), std::chrono::microseconds(0)).count();
+	float average =  sum / (float)ITERATIONS;
+	info("time average: {} usec", average);
 
 	// Transfer ownership to cv::Mat and write output image to file
 	vx_rectangle_t output_rect = {0, 0, (uint32_t)output.cols, (uint32_t)output.rows};
