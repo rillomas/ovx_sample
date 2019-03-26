@@ -168,8 +168,14 @@ int main(int argc, char** argv) {
 	for (const auto& t : time) {
 		info("time: {} usec", t.count());
 	}
-	auto sum = std::accumulate(std::begin(time), std::end(time), std::chrono::microseconds(0)).count();
-	float average =  sum / (float)ITERATIONS;
+	// Skip the first run when calculating average
+	// because the first run has more overhead.
+	constexpr int SKIP_COUNT = 1;
+	auto sum = std::accumulate(
+			std::next(std::begin(time), SKIP_COUNT),
+			std::end(time),
+			std::chrono::microseconds(0)).count();
+	float average =  sum / (float)(ITERATIONS-SKIP_COUNT);
 	info("time average: {} usec", average);
 
 	// Transfer ownership to cv::Mat and write output image to file
