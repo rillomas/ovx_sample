@@ -5,6 +5,7 @@
 #include <VX/vxu.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <ittnotify.h>
 using namespace spdlog;
 
 enum ReturnValue {
@@ -156,12 +157,16 @@ int main(int argc, char** argv) {
 	vxGaussian3x3Node(graph, input_img, output_img);
 	CHECK_VX_STATUS(vxVerifyGraph(graph));
 
+	const std::string name = "Process";
+	auto event = __itt_event_create(name.c_str(),name.length());
 	constexpr int ITERATIONS = 30;
 	std::vector<std::chrono::microseconds> time;
 	for (int i=0; i<ITERATIONS; i++) {
+		__itt_event_start(event);
 		auto start = std::chrono::high_resolution_clock::now();
 		CHECK_VX_STATUS(vxProcessGraph(graph));
 		auto end = std::chrono::high_resolution_clock::now();
+		__itt_event_end(event);
 		time.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-start));
 	}
 
