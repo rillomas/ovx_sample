@@ -7,30 +7,12 @@
 #include <opencv2/imgcodecs.hpp>
 #include <ittnotify.h>
 #include "vx_util.hpp"
+#include "ct.hpp"
 using namespace spdlog;
 using namespace vxutil;
+using namespace ct;
 
-namespace myvx {
-
-enum ReturnValue {
-	OK,
-	ERROR
-};
-
-enum LibraryID {
-	SAMPLE = 1,
-};
-
-enum KernelID {
-	SAMPLE_KERNEL = VX_KERNEL_BASE(VX_ID_DEFAULT, LibraryID::SAMPLE) + 0x001,
-};
-
-} // namespace myvx
-
-using namespace myvx;
-
-vx_df_image mat_type_to_image_format(int mat_type)
-{
+vx_df_image mat_type_to_image_format(int mat_type) {
 	switch (mat_type) {
 	case CV_8UC1:
 		return VX_DF_IMAGE_U8;
@@ -45,6 +27,7 @@ vx_df_image mat_type_to_image_format(int mat_type)
 		return 0;
 	}
 }
+
 vx_imagepatch_addressing_t get_format(const cv::Mat& mat) {
 	vx_imagepatch_addressing_t format;
 	format.dim_x = mat.cols;
@@ -117,6 +100,7 @@ int main(int argc, char** argv) {
 			&format,
 			(void**)&output.data,
 			VX_MEMORY_TYPE_HOST);
+  CHECK_VX_OBJECT(output_img);
 	// Construct graph and execute
 	vxGaussian3x3Node(graph, input_img, output_img);
 	CHECK_VX_STATUS(vxVerifyGraph(graph));

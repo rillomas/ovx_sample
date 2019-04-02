@@ -22,6 +22,8 @@ vt = cc.find_library('libittnotify', dirs:[vt_libdir])
 dl = cc.find_library('libdl')
 
 sources = [
+  'vx_util.cpp',
+  'ct.cpp',
   'main.cpp',
 ]
 executable(
