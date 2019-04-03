@@ -21,9 +21,9 @@ vx = cc.find_library('libopenvx', dirs:[vx_libdir])
 vt = cc.find_library('libittnotify', dirs:[vt_libdir])
 dl = cc.find_library('libdl')
 
+subdir('ovx')
+
 sources = [
-  'ovx/util.cpp',
-  'ovx/ct.cpp',
   'main.cpp',
 ]
 executable(
@@ -37,10 +37,11 @@ executable(
     cxxopts
   ],
   cpp_pch:'pch/header.hpp',
+  link_with: [ovxlib],
   dependencies:[
     cv_core,
     cv_imgcodecs,
     vx,
     vt,
-    dl
+    dl,
   ])
