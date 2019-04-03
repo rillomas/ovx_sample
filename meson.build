@@ -21,6 +21,7 @@ vx = cc.find_library('libopenvx', dirs:[vx_libdir])
 vt = cc.find_library('libittnotify', dirs:[vt_libdir])
 dl = cc.find_library('libdl')
 
+subdir('ct')
 subdir('ovx')
 
 sources = [
