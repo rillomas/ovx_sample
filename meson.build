@@ -1,5 +1,5 @@
 project('ovx_sample', 'cpp',
-  default_options:['cpp_std=c++11', 'warning_level=2'])
+	default_options:['cpp_std=c++11', 'warning_level=2'])
 cc = meson.get_compiler('cpp')
 INTEL_BASE_DIR = '/opt/intel/'
 VTUNE_DIR = join_paths(INTEL_BASE_DIR, 'system_studio_2019/vtune_amplifier/')
@@ -25,24 +25,24 @@ subdir('ct')
 subdir('ovx')
 
 sources = [
-  'main.cpp',
+	'main.cpp',
 ]
 executable(
-  'ovx_sample',
-  sources,
-  include_directories:[
-    vx_incdir,
-    cv_incdir,
-    vt_incdir,
-    spdlog,
-    cxxopts
-  ],
-  cpp_pch:'pch/header.hpp',
-  link_with: [ovxlib],
-  dependencies:[
-    cv_core,
-    cv_imgcodecs,
-    vx,
-    vt,
-    dl,
-  ])
+	'ovx_sample',
+	sources,
+	include_directories:[
+		vx_incdir,
+		cv_incdir,
+		vt_incdir,
+		spdlog,
+		cxxopts
+	],
+	cpp_pch:'pch/header.hpp',
+	link_with: [ovxlib],
+	dependencies:[
+		cv_core,
+		cv_imgcodecs,
+		vx,
+		vt,
+		dl,
+	])
