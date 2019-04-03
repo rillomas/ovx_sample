@@ -1,7 +1,8 @@
 #include "ct.hpp"
-#include "vx_util.hpp"
-using namespace vxutil;
+#include "util.hpp"
+using namespace ovx::util;
 
+namespace ovx {
 namespace ct {
 
 constexpr int BACK_PROJECTION_PARAM_NUM = 2;
@@ -16,7 +17,7 @@ vx_status VX_CALLBACK back_projection_host(
 
 	auto input = (vx_image)refs[0];
 	auto output = (vx_image)refs[1];
-
+	return VX_SUCCESS;
 }
 
 vx_status back_projection_validator(
@@ -53,3 +54,4 @@ vx_node back_projection_node(
 }
 
 } // namespace ct
+} // namespace ovx

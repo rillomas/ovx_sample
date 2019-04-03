@@ -1,6 +1,10 @@
 #pragma once
 #include <VX/vx.h>
+namespace ovx {
 namespace ct {
+
+// This library's ID
+constexpr int LIBRARY_ID = 1;
 
 // ReturnValue is a general return value for this namespace
 enum ReturnValue {
@@ -8,12 +12,8 @@ enum ReturnValue {
 	ERROR
 };
 
-enum LibraryID {
-	CT = 1,
-};
-
 enum KernelID {
-	BACK_PROJECTION = VX_KERNEL_BASE(VX_ID_DEFAULT, LibraryID::CT) + 0x001,
+	BACK_PROJECTION = VX_KERNEL_BASE(VX_ID_DEFAULT, LIBRARY_ID) + 0x001,
 };
 
 const std::string BACK_PROJECTION_NAME = "app.ct.back_projection";
@@ -27,3 +27,4 @@ vx_node back_projection_node(
   vx_image output);
 
 } // namespace ct
+} // namespace ovx

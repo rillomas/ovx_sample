@@ -1,8 +1,9 @@
-#include "vx_util.hpp"
+#include "util.hpp"
 
-namespace vxutil {
+namespace ovx {
+namespace util {
 
-const char* vxStatusToStr (vx_status e) {
+const char* status_to_str (vx_status e) {
 #define VX_STATUS_TO_STR_ENTRY(E) case E: return #E;
 	switch(e)
 	{
@@ -37,4 +38,5 @@ const char* vxStatusToStr (vx_status e) {
 #undef VX_STATUS_TO_STR_ENTRY
 }
 
-} // namespace vxutil
+} // namespace util
+} // namespace ovx

@@ -6,11 +6,11 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <ittnotify.h>
-#include "vx_util.hpp"
-#include "ct.hpp"
+#include "ovx/util.hpp"
+#include "ovx/ct.hpp"
 using namespace spdlog;
-using namespace vxutil;
-using namespace ct;
+using namespace ovx::util;
+using namespace ovx::ct;
 
 vx_df_image mat_type_to_image_format(int mat_type) {
 	switch (mat_type) {

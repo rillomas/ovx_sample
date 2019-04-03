@@ -2,9 +2,11 @@
 #include <spdlog/spdlog.h>
 #include <VX/vx.h>
 
-namespace vxutil {
-	
-const char* vxStatusToStr (vx_status e);
+namespace ovx {
+namespace util {
+
+// Convert given status to a string for loggint	
+const char* status_to_str(vx_status e);
 
 // Check COMMAND to VX_SUCCESS and if it is not, print error message and
 // exits the application.
@@ -16,7 +18,7 @@ const char* vxStatusToStr (vx_status e);
 			error("VX API call failed with {}" \
 					" file: {}" \
 					" line: {}" \
-					, vxStatusToStr(__local_status) \
+					, status_to_str(__local_status) \
 					, __FILE__ \
 					, __LINE__); \
 			std::exit(1); \
@@ -31,10 +33,12 @@ const char* vxStatusToStr (vx_status e);
 			spdlog::error("Got invalid VX object at {}" \
 					" file: {}" \
 					" line: {}" \
-					, vxStatusToStr(__local_status) \
+					, status_to_str(__local_status) \
 					, __FILE__ \
 					, __LINE__); \
 			std::exit(1); \
 		} \
   }
-}
+
+} // nameapce util
+} // namespace ovx
