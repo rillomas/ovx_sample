@@ -8,21 +8,16 @@ OPENVX_DIR = join_paths(OPENVINO_DIR, 'openvx')
 OPENCV_DIR = join_paths(OPENVINO_DIR, 'opencv')
 SUB_PROJECT_DIR = 'subprojects'
 vx_incdir = include_directories(join_paths(OPENVX_DIR,'include'))
-cv_incdir = include_directories(join_paths(OPENCV_DIR,'include'))
 vt_incdir = include_directories(join_paths(VTUNE_DIR, 'include'))
 spdlog = include_directories(join_paths(SUB_PROJECT_DIR, 'spdlog/include'))
 cxxopts = include_directories(join_paths(SUB_PROJECT_DIR, 'cxxopts/include'))
 vx_libdir = join_paths(OPENVX_DIR,'lib')
-cv_libdir = join_paths(OPENCV_DIR,'lib')
 vt_libdir = join_paths(VTUNE_DIR,'lib64')
-cv_core = cc.find_library('libopencv_core', dirs:[cv_libdir])
-cv_imgcodecs = cc.find_library('libopencv_imgcodecs', dirs:[cv_libdir])
+cv = dependency('opencv')
 vx = cc.find_library('libopenvx', dirs:[vx_libdir])
 vt = cc.find_library('libittnotify', dirs:[vt_libdir])
 dl = cc.find_library('libdl')
 
-ctlib_proj = subproject('ct')
-ctlib_dep = ctlib_proj.get_variable('ctlib_dep')
 subdir('ovx')
 
 sources = [
@@ -33,7 +28,6 @@ executable(
 	sources,
 	include_directories:[
 		vx_incdir,
-		cv_incdir,
 		vt_incdir,
 		spdlog,
 		cxxopts
@@ -41,8 +35,7 @@ executable(
 	cpp_pch:'pch/header.hpp',
 	link_with: [ovxlib],
 	dependencies:[
-		cv_core,
-		cv_imgcodecs,
+		cv,
 		vx,
 		vt,
 		dl,
