@@ -15,7 +15,7 @@ const char* status_to_str(vx_status e);
 		vx_status __local_status = COMMAND; \
 		if(__local_status != VX_SUCCESS) \
 		{ \
-			error("VX API call failed with {}" \
+			spdlog::error("VX API call failed with {}" \
 					" file: {}" \
 					" line: {}" \
 					, status_to_str(__local_status) \
