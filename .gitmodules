@@ -4,3 +4,6 @@
 [submodule "external/cxxopts"]
 	path = external/cxxopts
 	url = https://github.com/jarro2783/cxxopts.git
+[submodule "external/ct"]
+	path = external/ct
+	url = git@github.com:rillomas/halide_sample.git
