@@ -6,12 +6,12 @@ VTUNE_DIR = join_paths(INTEL_BASE_DIR, 'system_studio_2019/vtune_amplifier/')
 OPENVINO_DIR = join_paths(INTEL_BASE_DIR, 'computer_vision_sdk')
 OPENVX_DIR = join_paths(OPENVINO_DIR, 'openvx')
 OPENCV_DIR = join_paths(OPENVINO_DIR, 'opencv')
-EXTERNAL_DIR = 'external'
+SUB_PROJECT_DIR = 'subprojects'
 vx_incdir = include_directories(join_paths(OPENVX_DIR,'include'))
 cv_incdir = include_directories(join_paths(OPENCV_DIR,'include'))
 vt_incdir = include_directories(join_paths(VTUNE_DIR, 'include'))
-spdlog = include_directories(join_paths(EXTERNAL_DIR, 'spdlog/include'))
-cxxopts = include_directories(join_paths(EXTERNAL_DIR, 'cxxopts/include'))
+spdlog = include_directories(join_paths(SUB_PROJECT_DIR, 'spdlog/include'))
+cxxopts = include_directories(join_paths(SUB_PROJECT_DIR, 'cxxopts/include'))
 vx_libdir = join_paths(OPENVX_DIR,'lib')
 cv_libdir = join_paths(OPENCV_DIR,'lib')
 vt_libdir = join_paths(VTUNE_DIR,'lib64')
@@ -21,7 +21,8 @@ vx = cc.find_library('libopenvx', dirs:[vx_libdir])
 vt = cc.find_library('libittnotify', dirs:[vt_libdir])
 dl = cc.find_library('libdl')
 
-subdir('ct')
+ctlib_proj = subproject('ct')
+ctlib_dep = ctlib_proj.get_variable('ctlib_dep')
 subdir('ovx')
 
 sources = [

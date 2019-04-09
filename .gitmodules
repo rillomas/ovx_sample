@@ -1,9 +1,9 @@
 [submodule "external/spdlog"]
-	path = external/spdlog
+	path = subprojects/spdlog
 	url = https://github.com/gabime/spdlog.git
 [submodule "external/cxxopts"]
-	path = external/cxxopts
+	path = subprojects/cxxopts
 	url = https://github.com/jarro2783/cxxopts.git
 [submodule "external/ct"]
-	path = external/ct
+	path = subprojects/ct
 	url = git@github.com:rillomas/halide_sample.git
