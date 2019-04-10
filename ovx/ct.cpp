@@ -1,3 +1,4 @@
+#include "absl/strings/str_format.h"
 #include "ct.hpp"
 #include "util.hpp"
 #include "back_projection.hpp"
@@ -45,7 +46,12 @@ vx_status VX_CALLBACK back_projection_host(
 	CHECK_VX_STATUS(map_and_convert(&inimg, &inmap, &inaddr, input));
 	CHECK_VX_STATUS(map_and_convert(&outimg, &outmap, &outaddr, output));
 	auto res = ctlib::calc_back_projection_cpu(&outimg, inimg);
-	auto result = res == ctlib::Result::OK ? VX_SUCCESS : VX_FAILURE;
+	auto result = VX_SUCCESS;
+	if (res != ctlib::Result::OK) {
+		result = VX_FAILURE;
+		auto msg = absl::StrFormat("calc_back_projection_cpu failed: %d", res);
+		vxAddLogEntry((vx_reference)node, result, msg.c_str());
+	}
 	CHECK_VX_STATUS(vxUnmapImagePatch(input, inmap));
 	CHECK_VX_STATUS(vxUnmapImagePatch(output, outmap));
 	return result;

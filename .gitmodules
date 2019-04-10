@@ -7,3 +7,6 @@
 [submodule "external/ct"]
 	path = subprojects/ct
 	url = git@github.com:rillomas/halide_sample.git
+[submodule "subprojects/abseil-cpp"]
+	path = subprojects/abseil-cpp
+	url = https://github.com/abseil/abseil-cpp.git

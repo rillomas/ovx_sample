@@ -7,6 +7,9 @@ OPENVINO_DIR = join_paths(INTEL_BASE_DIR, 'computer_vision_sdk')
 OPENVX_DIR = join_paths(OPENVINO_DIR, 'openvx')
 OPENCV_DIR = join_paths(OPENVINO_DIR, 'opencv')
 SUB_PROJECT_DIR = 'subprojects'
+prefix = get_option('prefix')
+incdir = get_option('includedir')
+libdir = get_option('libdir')
 spdlog = declare_dependency(
 	include_directories: join_paths(SUB_PROJECT_DIR, 'spdlog/include'),
 )
@@ -14,14 +17,14 @@ cxxopts = declare_dependency(
 	include_directories: join_paths(SUB_PROJECT_DIR, 'cxxopts/include'),
 )
 vx = declare_dependency(
-	include_directories: join_paths(OPENVX_DIR,'include'),
+	include_directories: join_paths(OPENVX_DIR,incdir),
 	dependencies: cc.find_library(
 		'libopenvx',
-		dirs:[join_paths(OPENVX_DIR,'lib')
+		dirs:[join_paths(OPENVX_DIR,libdir)
 	]),
 )
 vt = declare_dependency(
-	include_directories: join_paths(VTUNE_DIR, 'include'),
+	include_directories: join_paths(VTUNE_DIR, incdir),
 	dependencies: cc.find_library(
 		'libittnotify',
 		dirs:[join_paths(VTUNE_DIR,'lib64')
