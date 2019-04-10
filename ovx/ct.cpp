@@ -1,4 +1,3 @@
-#include "absl/strings/str_format.h"
 #include "ct.hpp"
 #include "util.hpp"
 #include "back_projection.hpp"
@@ -8,6 +7,7 @@ namespace ctlib = ::ct;
 namespace ovx {
 namespace ct {
 
+// Number of params for back projection
 constexpr int BACK_PROJECTION_PARAM_NUM = 2;
 
 static vx_status map_and_convert(
@@ -49,8 +49,11 @@ vx_status VX_CALLBACK back_projection_host(
 	auto result = VX_SUCCESS;
 	if (res != ctlib::Result::OK) {
 		result = VX_FAILURE;
-		auto msg = absl::StrFormat("calc_back_projection_cpu failed: %d", res);
-		vxAddLogEntry((vx_reference)node, result, msg.c_str());
+		vxAddLogEntry(
+			(vx_reference)node,
+			result,
+			"calc_back_projection_cpu failed: %d\n",
+			res);
 	}
 	CHECK_VX_STATUS(vxUnmapImagePatch(input, inmap));
 	CHECK_VX_STATUS(vxUnmapImagePatch(output, outmap));
@@ -76,11 +79,12 @@ vx_status register_user_kernel(vx_context ctx) {
     nullptr,
     nullptr);
   CHECK_VX_OBJECT(kernel);
+  auto res = VX_SUCCESS;
   vxAddLogEntry((vx_reference)ctx,
-    VX_SUCCESS,
+    res,
     "OK: registered user kernel %s\n",
     BACK_PROJECTION_NAME.c_str());
-  return VX_SUCCESS;
+  return res;
 
 }
 
