@@ -23,9 +23,9 @@ const std::string BACK_PROJECTION_NAME = "app.ct.back_projection";
 vx_status register_user_kernel(vx_context ctx);
 
 vx_node back_projection_node(
-  vx_graph graph,
-  vx_image input,
-  vx_image output);
+	vx_graph graph,
+	vx_image input,
+	vx_image output);
 
 } // namespace ct
 } // namespace ovx
