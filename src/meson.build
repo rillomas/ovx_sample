@@ -10,7 +10,7 @@ ovxlib = static_library(
 	include_directories: ovxlib_inc,
 	dependencies:[
 		vx,
-		ctlib_dep,
+		# ctlib_dep,
 		spdlog,
 	])
 

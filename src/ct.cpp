@@ -1,8 +1,8 @@
 #include "ct.hpp"
 #include "util.hpp"
-#include "back_projection.hpp"
+// #include "back_projection.hpp"
 using namespace ovx::util;
-namespace ctlib = ::ct;
+// namespace ctlib = ::ct;
 
 namespace ovx {
 namespace ct {
@@ -10,25 +10,25 @@ namespace ct {
 // Number of params for back projection
 constexpr int BACK_PROJECTION_PARAM_NUM = 2;
 
-static vx_status map_and_convert(
-	ctlib::Image* converted,
-	vx_map_id *map,
-	vx_imagepatch_addressing_t *addr,
-	vx_image img) {
-	vx_uint32 width = 0, height = 0, planes = 0;
-	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_WIDTH,  &width,  sizeof(width)));
-	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_HEIGHT, &height, sizeof(height)));
-	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_PLANES, &planes, sizeof(planes)));
+// static vx_status map_and_convert(
+// 	ctlib::Image* converted,
+// 	vx_map_id *map,
+// 	vx_imagepatch_addressing_t *addr,
+// 	vx_image img) {
+// 	vx_uint32 width = 0, height = 0, planes = 0;
+// 	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_WIDTH,  &width,  sizeof(width)));
+// 	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_HEIGHT, &height, sizeof(height)));
+// 	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_PLANES, &planes, sizeof(planes)));
 
-	vx_rectangle_t rect = { 0, 0, width, height };
-	void* ptr = nullptr;
-	CHECK_VX_STATUS(vxMapImagePatch(img,  &rect, 0, map, addr,  &ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X));
-	converted->data = (uint8_t*)ptr;
-	converted->width = width;
-	converted->height = height;
-	converted->channels = planes;
-	return VX_SUCCESS;
-}
+// 	vx_rectangle_t rect = { 0, 0, width, height };
+// 	void* ptr = nullptr;
+// 	CHECK_VX_STATUS(vxMapImagePatch(img,  &rect, 0, map, addr,  &ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X));
+// 	converted->data = (uint8_t*)ptr;
+// 	converted->width = width;
+// 	converted->height = height;
+// 	converted->channels = planes;
+// 	return VX_SUCCESS;
+// }
 
 vx_status VX_CALLBACK back_projection_host(
 	vx_node node,
@@ -38,19 +38,19 @@ vx_status VX_CALLBACK back_projection_host(
 	auto output = (vx_image)refs[1];
 	vx_map_id inmap, outmap;
 	vx_imagepatch_addressing_t inaddr, outaddr;
-	ctlib::Image inimg, outimg;
-	CHECK_VX_STATUS(map_and_convert(&inimg, &inmap, &inaddr, input));
-	CHECK_VX_STATUS(map_and_convert(&outimg, &outmap, &outaddr, output));
-	auto res = ctlib::calc_back_projection_cpu(&outimg, inimg);
+	// ctlib::Image inimg, outimg;
+	// CHECK_VX_STATUS(map_and_convert(&inimg, &inmap, &inaddr, input));
+	// CHECK_VX_STATUS(map_and_convert(&outimg, &outmap, &outaddr, output));
+	// auto res = ctlib::calc_back_projection_cpu(&outimg, inimg);
 	auto result = VX_SUCCESS;
-	if (res != ctlib::Result::OK) {
-		result = VX_FAILURE;
-		vxAddLogEntry(
-			(vx_reference)node,
-			result,
-			"calc_back_projection_cpu failed: %d\n",
-			res);
-	}
+	// if (res != ctlib::Result::OK) {
+	// 	result = VX_FAILURE;
+	// 	vxAddLogEntry(
+	// 		(vx_reference)node,
+	// 		result,
+	// 		"calc_back_projection_cpu failed: %d\n",
+	// 		res);
+	// }
 	CHECK_VX_STATUS(vxUnmapImagePatch(input, inmap));
 	CHECK_VX_STATUS(vxUnmapImagePatch(output, outmap));
 	return result;
