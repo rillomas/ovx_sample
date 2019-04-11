@@ -6,8 +6,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <ittnotify.h>
-#include "ovx/util.hpp"
-#include "ovx/ct.hpp"
+#include "util.hpp"
+#include "ct.hpp"
 using namespace spdlog;
 using namespace ovx::util;
 using namespace ovx::ct;

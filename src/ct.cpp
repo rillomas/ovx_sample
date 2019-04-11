@@ -34,10 +34,6 @@ vx_status VX_CALLBACK back_projection_host(
 	vx_node node,
 	const vx_reference* refs,
 	vx_uint32 num) {
-	if (num != BACK_PROJECTION_PARAM_NUM) {
-		return VX_ERROR_INVALID_PARAMETERS;
-	}
-
 	auto input = (vx_image)refs[0];
 	auto output = (vx_image)refs[1];
 	vx_map_id inmap, outmap;
@@ -65,6 +61,19 @@ vx_status back_projection_validator(
 	const vx_reference parameters[],
 	vx_uint32 num,
 	vx_meta_format metas[]) {
+	if (num != BACK_PROJECTION_PARAM_NUM) {
+		return VX_ERROR_INVALID_PARAMETERS;
+	}
+	vx_df_image format = VX_DF_IMAGE_VIRT;
+	CHECK_VX_STATUS(vxQueryImage(
+		(vx_image)parameters[0],
+		VX_IMAGE_FORMAT,
+		&format,
+		sizeof(vx_df_image)));
+	if (format != VX_DF_IMAGE_U8) {
+		return VX_ERROR_INVALID_FORMAT;
+	}
+
 	return VX_SUCCESS;
 }
 

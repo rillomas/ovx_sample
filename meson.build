@@ -32,8 +32,10 @@ vt = declare_dependency(
 )
 cv = dependency('opencv')
 dl = cc.find_library('libdl')
+ovxlib_inc = include_directories(incdir)
 
-subdir('ovx')
+subdir('src')
+subdir('test')
 
 sources = [
 	'main.cpp',
@@ -42,8 +44,8 @@ executable(
 	'ovx_sample',
 	sources,
 	cpp_pch:'pch/header.hpp',
-	link_with: [ovxlib],
 	dependencies:[
+		ovxlib_dep,
 		cv,
 		vx,
 		vt,
