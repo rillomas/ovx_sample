@@ -30,6 +30,7 @@ vx_status VX_CALLBACK back_projection_host(
 	vx_node node,
 	const vx_reference* refs,
 	vx_uint32 num) {
+	UNUSED(num);
 	auto input = (vx_image)refs[0];
 	auto output = (vx_image)refs[1];
 	vx_map_id inmap, outmap;
@@ -56,6 +57,8 @@ vx_status back_projection_validator(
 	const vx_reference parameters[],
 	vx_uint32 num,
 	vx_meta_format metas[]) {
+	UNUSED(node);
+	UNUSED(metas);
 	if (num != BACK_PROJECTION_PARAM_NUM) {
 		return VX_ERROR_INVALID_PARAMETERS;
 	}
@@ -100,6 +103,15 @@ vx_node back_projection_node(
 	vx_graph graph,
 	vx_image input,
 	vx_image output) {
+	auto context = vxGetContext((vx_reference)graph);
+	auto kernel = vxGetKernelByEnum(context, ovx::ct::KernelID::BACK_PROJECTION);
+	CHECK_VX_OBJECT(kernel);
+	auto node = vxCreateGenericNode(graph, kernel);
+	CHECK_VX_OBJECT(node);
+	CHECK_VX_STATUS(vxSetParameterByIndex(node, 0, (vx_reference)input));
+	CHECK_VX_STATUS(vxSetParameterByIndex(node, 1, (vx_reference)output));
+	CHECK_VX_STATUS(vxReleaseKernel(&kernel));
+	return node;
 }
 
 } // namespace ct

@@ -8,6 +8,11 @@ halide_incdir = join_paths(prefix, get_option('includedir'))
 ovxlib = static_library(
 	'ovx',
 	sources,
+	# cpp_args is currently used to suppress Halide's
+	# compiler warnings.
+	cpp_args:[
+		'-Wno-missing-field-initializers',
+	],
 	include_directories: [
 		ovxlib_inc,
 		halide_incdir

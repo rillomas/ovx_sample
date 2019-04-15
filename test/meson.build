@@ -8,5 +8,7 @@ executable('ovx_test',
 		vx,
 		ovxlib_dep,
 		gtest,
-		dl
+		dl,
+		spdlog,
+		cv
 	])
