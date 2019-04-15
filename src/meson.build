@@ -4,13 +4,17 @@ sources = [
 ]
 ctlib_proj = subproject('ct')
 ctlib_dep = ctlib_proj.get_variable('ctlib_dep')
+halide_incdir = join_paths(prefix, get_option('includedir'))
 ovxlib = static_library(
 	'ovx',
 	sources,
-	include_directories: ovxlib_inc,
+	include_directories: [
+		ovxlib_inc,
+		halide_incdir
+	],
 	dependencies:[
 		vx,
-		# ctlib_dep,
+		ctlib_dep,
 		spdlog,
 	])
 

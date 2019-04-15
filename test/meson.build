@@ -7,5 +7,6 @@ executable('ovx_test',
 	dependencies:[
 		vx,
 		ovxlib_dep,
-		gtest
+		gtest,
+		dl
 	])
