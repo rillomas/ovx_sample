@@ -1,11 +1,10 @@
 #include <opencv2/core/core.hpp>
 #include "util.hpp"
-using namespace spdlog;
 
 namespace ovx {
 namespace util {
 
-vx_df_image mat_type_to_image_format(int mat_type) {
+vx_df_image mat_type_to_image_format(vx_context ctx, int mat_type) {
 	switch (mat_type) {
 	case CV_8UC1:
 		return VX_DF_IMAGE_U8;
@@ -16,7 +15,11 @@ vx_df_image mat_type_to_image_format(int mat_type) {
 	case CV_8UC4:
 		return VX_DF_IMAGE_RGBX;
 	default:
-		error("Unsupported format: {}", mat_type);
+		vxAddLogEntry(
+			(vx_reference)ctx,
+			VX_ERROR_INVALID_FORMAT,
+			"Unsupported format: %d",
+			mat_type);
 		return 0;
 	}
 }
@@ -40,7 +43,7 @@ vx_image create_image_from_mat(
 	auto format = get_format(mat);
 	return vxCreateImageFromHandle(
 			ctx,
-			mat_type_to_image_format(mat.type()),
+			mat_type_to_image_format(ctx, mat.type()),
 			&format,
 			(void**)&mat.data,
 			VX_MEMORY_TYPE_HOST);

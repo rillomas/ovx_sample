@@ -11,17 +11,19 @@ namespace ct {
 constexpr int BACK_PROJECTION_PARAM_NUM = 2;
 
 static Halide::Runtime::Buffer<uint8_t> map_and_convert(
+	vx_node node,
 	vx_image img,
 	vx_map_id *map,
 	vx_imagepatch_addressing_t *addr){
-	vx_uint32 width = 0, height = 0, planes = 0;
-	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_WIDTH,  &width,  sizeof(width)));
-	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_HEIGHT, &height, sizeof(height)));
-	CHECK_VX_STATUS(vxQueryImage(img, VX_IMAGE_PLANES, &planes, sizeof(planes)));
+	vx_uint32 width = 0, height = 0;
+	vx_size planes = 0;
+	CHECK_VX_STATUS(node, vxQueryImage(img, VX_IMAGE_WIDTH,  &width,  sizeof(width)));
+	CHECK_VX_STATUS(node, vxQueryImage(img, VX_IMAGE_HEIGHT, &height, sizeof(height)));
+	CHECK_VX_STATUS(node, vxQueryImage(img, VX_IMAGE_PLANES, &planes, sizeof(planes)));
 
 	vx_rectangle_t rect = { 0, 0, width, height };
 	void* ptr = nullptr;
-	CHECK_VX_STATUS(vxMapImagePatch(img,  &rect, 0, map, addr,  &ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X));
+	CHECK_VX_STATUS(node, vxMapImagePatch(img,  &rect, 0, map, addr,  &ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X));
 	Halide::Runtime::Buffer<uint8_t> converted((uint8_t*)ptr, width, height, planes);
 	return converted;
 }
@@ -35,8 +37,8 @@ vx_status VX_CALLBACK back_projection_host(
 	auto output = (vx_image)refs[1];
 	vx_map_id inmap, outmap;
 	vx_imagepatch_addressing_t inaddr, outaddr;
-	auto inimg = map_and_convert(input, &inmap, &inaddr);
-	auto outimg = map_and_convert(output, &outmap, &outaddr);
+	auto inimg = map_and_convert(node, input, &inmap, &inaddr);
+	auto outimg = map_and_convert(node, output, &outmap, &outaddr);
 	auto res = back_projection_basic(inimg, outimg);
 	auto result = VX_SUCCESS;
 	if (res != 0) {
@@ -47,8 +49,8 @@ vx_status VX_CALLBACK back_projection_host(
 			"back_projection_basic failed: %d\n",
 			res);
 	}
-	CHECK_VX_STATUS(vxUnmapImagePatch(input, inmap));
-	CHECK_VX_STATUS(vxUnmapImagePatch(output, outmap));
+	CHECK_VX_STATUS(node, vxUnmapImagePatch(input, inmap));
+	CHECK_VX_STATUS(node, vxUnmapImagePatch(output, outmap));
 	return result;
 }
 
@@ -58,20 +60,25 @@ vx_status back_projection_validator(
 	vx_uint32 num,
 	vx_meta_format metas[]) {
 	UNUSED(node);
-	UNUSED(metas);
 	if (num != BACK_PROJECTION_PARAM_NUM) {
 		return VX_ERROR_INVALID_PARAMETERS;
 	}
-	vx_df_image format = VX_DF_IMAGE_VIRT;
-	CHECK_VX_STATUS(vxQueryImage(
-		(vx_image)parameters[0],
+	auto in_img = (vx_image)parameters[0];
+	vx_df_image in_format = VX_DF_IMAGE_VIRT;
+	CHECK_VX_STATUS(node, vxQueryImage(
+		in_img,
 		VX_IMAGE_FORMAT,
-		&format,
+		&in_format,
 		sizeof(vx_df_image)));
-	if (format != VX_DF_IMAGE_U8) {
-		return VX_ERROR_INVALID_FORMAT;
-	}
-
+	vx_uint32 width, height;
+	vx_size planes;
+	CHECK_VX_STATUS(node, vxQueryImage(in_img, VX_IMAGE_WIDTH, &width, sizeof(width)));
+	CHECK_VX_STATUS(node, vxQueryImage(in_img, VX_IMAGE_HEIGHT, &height, sizeof(height)));
+	CHECK_VX_STATUS(node, vxQueryImage(in_img, VX_IMAGE_PLANES, &planes, sizeof(planes)));
+	auto out_meta = metas[1];
+	CHECK_VX_STATUS(node, vxSetMetaFormatAttribute(out_meta, VX_IMAGE_FORMAT, &in_format, sizeof(in_format)));
+	CHECK_VX_STATUS(node, vxSetMetaFormatAttribute(out_meta, VX_IMAGE_WIDTH, &width, sizeof(width)));
+	CHECK_VX_STATUS(node, vxSetMetaFormatAttribute(out_meta, VX_IMAGE_HEIGHT, &height, sizeof(height)));
 	return VX_SUCCESS;
 }
 
@@ -85,11 +92,11 @@ vx_status register_user_kernel(vx_context ctx) {
 		back_projection_validator,
 		nullptr,
 		nullptr);
-	CHECK_VX_OBJECT(kernel);
-	CHECK_VX_STATUS(vxAddParameterToKernel(kernel, 0, VX_INPUT,  VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
-	CHECK_VX_STATUS(vxAddParameterToKernel(kernel, 1, VX_OUTPUT, VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
-	CHECK_VX_STATUS(vxFinalizeKernel(kernel));
-	CHECK_VX_STATUS(vxReleaseKernel(&kernel));
+	CHECK_VX_OBJECT(ctx, kernel);
+	CHECK_VX_STATUS(ctx, vxAddParameterToKernel(kernel, 0, VX_INPUT,  VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
+	CHECK_VX_STATUS(ctx, vxAddParameterToKernel(kernel, 1, VX_OUTPUT, VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
+	CHECK_VX_STATUS(ctx, vxFinalizeKernel(kernel));
+	CHECK_VX_STATUS(ctx, vxReleaseKernel(&kernel));
 	auto res = VX_SUCCESS;
 	vxAddLogEntry((vx_reference)ctx,
 		res,
@@ -105,12 +112,12 @@ vx_node back_projection_node(
 	vx_image output) {
 	auto context = vxGetContext((vx_reference)graph);
 	auto kernel = vxGetKernelByEnum(context, ovx::ct::KernelID::BACK_PROJECTION);
-	CHECK_VX_OBJECT(kernel);
+	CHECK_VX_OBJECT(graph, kernel);
 	auto node = vxCreateGenericNode(graph, kernel);
-	CHECK_VX_OBJECT(node);
-	CHECK_VX_STATUS(vxSetParameterByIndex(node, 0, (vx_reference)input));
-	CHECK_VX_STATUS(vxSetParameterByIndex(node, 1, (vx_reference)output));
-	CHECK_VX_STATUS(vxReleaseKernel(&kernel));
+	CHECK_VX_OBJECT(graph, node);
+	CHECK_VX_STATUS(graph, vxSetParameterByIndex(node, 0, (vx_reference)input));
+	CHECK_VX_STATUS(graph, vxSetParameterByIndex(node, 1, (vx_reference)output));
+	CHECK_VX_STATUS(graph, vxReleaseKernel(&kernel));
 	return node;
 }
 

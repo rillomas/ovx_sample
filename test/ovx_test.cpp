@@ -13,7 +13,7 @@ static void VX_CALLBACK log_callback(
 	const vx_char* string) {
 	UNUSED(ctx);
 	UNUSED(ref);
-	printf("LOG[status: %d] %s\n", status, string);
+	printf("LOG[status: %d] %s", status, string);
 }
 
 class OVXTestFixture : public ::testing::Test {
@@ -37,7 +37,7 @@ protected:
 };
 
 TEST_F(OVXTestFixture, RunBackProjection) {
-	auto input = cv::imread("../test/data/lena.png", cv::IMREAD_GRAYSCALE);
+	auto input = cv::imread("../test/data/lena.png");
 	EXPECT_FALSE(input.empty());
 	auto input_img = ovx::util::create_image_from_mat(ctx_, input);
 	EXPECT_EQ(VX_SUCCESS, GET_STATUS(input_img));
@@ -45,7 +45,7 @@ TEST_F(OVXTestFixture, RunBackProjection) {
 	auto format = ovx::util::get_format(output);
 	vx_image output_img = vxCreateImageFromHandle(
 			ctx_,
-			ovx::util::mat_type_to_image_format(output.type()),
+			ovx::util::mat_type_to_image_format(ctx_, output.type()),
 			&format,
 			(void**)&output.data,
 			VX_MEMORY_TYPE_HOST);
@@ -54,7 +54,6 @@ TEST_F(OVXTestFixture, RunBackProjection) {
 	EXPECT_EQ(VX_SUCCESS, GET_STATUS(n));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseNode(&n));
 	EXPECT_EQ(VX_SUCCESS, vxVerifyGraph(graph_));
-
 	EXPECT_EQ(VX_SUCCESS, vxProcessGraph(graph_));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&input_img));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&output_img));

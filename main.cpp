@@ -55,14 +55,14 @@ int main(int argc, char** argv) {
 	auto format = get_format(output);
 	vx_image output_img = vxCreateImageFromHandle(
 			context,
-			mat_type_to_image_format(output.type()),
+			mat_type_to_image_format(context, output.type()),
 			&format,
 			(void**)&output.data,
 			VX_MEMORY_TYPE_HOST);
-  CHECK_VX_OBJECT(output_img);
+  CHECK_VX_OBJECT(context, output_img);
 	// Construct graph and execute
 	vxGaussian3x3Node(graph, input_img, output_img);
-	CHECK_VX_STATUS(vxVerifyGraph(graph));
+	CHECK_VX_STATUS(context, vxVerifyGraph(graph));
 
 	const std::string name = "Process";
 	auto event = __itt_event_create(name.c_str(),name.length());
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 	for (int i=0; i<ITERATIONS; i++) {
 		__itt_event_start(event);
 		auto start = std::chrono::high_resolution_clock::now();
-		CHECK_VX_STATUS(vxProcessGraph(graph));
+		CHECK_VX_STATUS(context, vxProcessGraph(graph));
 		auto end = std::chrono::high_resolution_clock::now();
 		__itt_event_end(event);
 		time.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-start));
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 	const uint32_t plane_index = 0;
 	vx_map_id output_map;
 	vx_imagepatch_addressing_t addr;
-	CHECK_VX_STATUS(vxMapImagePatch(
+	CHECK_VX_STATUS(context, vxMapImagePatch(
 			output_img,
 			&output_rect,
 			plane_index,
@@ -116,9 +116,9 @@ int main(int argc, char** argv) {
 	vxUnmapImagePatch(output_img, output_map);
 
 	info("Releasing resources");
-	CHECK_VX_STATUS(vxReleaseImage(&input_img));
-	CHECK_VX_STATUS(vxReleaseImage(&output_img));
-	CHECK_VX_STATUS(vxReleaseGraph(&graph));
-	CHECK_VX_STATUS(vxReleaseContext(&context));
+	CHECK_VX_STATUS(context, vxReleaseImage(&input_img));
+	CHECK_VX_STATUS(context, vxReleaseImage(&output_img));
+	CHECK_VX_STATUS(context, vxReleaseGraph(&graph));
+	vxReleaseContext(&context);
 	return ReturnValue::OK;
 }
