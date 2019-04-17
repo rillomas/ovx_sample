@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <VX/vx.h>
+#include <chrono>
 #include "util.hpp"
 #include "ct.hpp"
 
@@ -83,7 +84,11 @@ TEST_F(OVXTestFixture, RunBackProjection) {
 	EXPECT_EQ(VX_SUCCESS, GET_STATUS(n));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseNode(&n));
 	EXPECT_EQ(VX_SUCCESS, vxVerifyGraph(graph_));
+	auto start = std::chrono::high_resolution_clock::now();
 	EXPECT_EQ(VX_SUCCESS, vxProcessGraph(graph_));
+	auto end = std::chrono::high_resolution_clock::now();
+	auto usec = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+	std::cout << usec << " usec" << std::endl;
 	EXPECT_EQ(VX_SUCCESS, write_to_file(ctx_, output_img, output, "lena_bright.png"));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&input_img));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&output_img));
