@@ -31,8 +31,7 @@ const char* status_to_str(vx_status e);
 			vxAddLogEntry( \
 				(vx_reference)ctx, \
 				stat, \
-				"VX API call failed: %s file: %s line: %d\n", \
-				ovx::util::status_to_str(stat), \
+				"VX API call failed: file: %s line: %d\n", \
 				__FILE__, \
 				__LINE__); \
 		} \
@@ -45,8 +44,7 @@ const char* status_to_str(vx_status e);
 			vxAddLogEntry( \
 				(vx_reference)ctx, \
 				stat, \
-				"Got invalid VX object: %s file: %s line: %d\n", \
-				ovx::util::status_to_str(stat), \
+				"Got invalid VX object: file: %s line: %d\n", \
 				__FILE__, \
 				__LINE__); \
 		} \

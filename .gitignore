@@ -1,3 +1,4 @@
 build
 debugopt
 .vscode
+*.code-workspace

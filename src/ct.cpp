@@ -100,7 +100,7 @@ vx_status back_projection_validator(
 vx_status register_user_kernel(vx_context ctx) {
 	vx_kernel kernel = vxAddUserKernel(ctx,
 		BACK_PROJECTION_NAME.c_str(),
-		KernelID::BACK_PROJECTION,
+		(vx_enum)KernelID::BACK_PROJECTION,
 		back_projection_host,
 		BACK_PROJECTION_PARAM_NUM,
 		back_projection_validator,
@@ -121,7 +121,7 @@ vx_node back_projection_node(
 	vx_image input,
 	vx_image output) {
 	auto context = vxGetContext((vx_reference)graph);
-	auto kernel = vxGetKernelByEnum(context, ovx::ct::KernelID::BACK_PROJECTION);
+	auto kernel = vxGetKernelByEnum(context, (vx_enum)ovx::ct::KernelID::BACK_PROJECTION);
 	CHECK_VX_OBJECT(graph, kernel);
 	auto node = vxCreateGenericNode(graph, kernel);
 	CHECK_VX_OBJECT(graph, node);

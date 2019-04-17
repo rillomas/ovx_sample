@@ -12,6 +12,13 @@ using namespace spdlog;
 using namespace ovx::util;
 using namespace ovx::ct;
 
+
+// ReturnValue is a general return value for this namespace
+enum ReturnValue {
+	OK,
+	ERROR
+};
+
 int main(int argc, char** argv) {
 	cxxopts::Options options("ovx_sample", "Sample for OpenVX");
 	options

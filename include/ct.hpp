@@ -7,14 +7,14 @@ namespace ct {
 // This library's ID
 constexpr int LIBRARY_ID = 1;
 
-// ReturnValue is a general return value for this namespace
-enum ReturnValue {
-	OK,
-	ERROR
+enum class KernelID {
+	BACK_PROJECTION = VX_KERNEL_BASE(VX_ID_DEFAULT, LIBRARY_ID) + 0x001,
 };
 
-enum KernelID {
-	BACK_PROJECTION = VX_KERNEL_BASE(VX_ID_DEFAULT, LIBRARY_ID) + 0x001,
+enum class BackendTarget {
+	GENERIC = VX_ENUM_BASE(VX_ID_DEFAULT, VX_ENUM_TARGET) + 0x001,
+	CPU_INTEL,
+	GPU_INTEL,
 };
 
 const std::string BACK_PROJECTION_NAME = "app.ct.back_projection";
