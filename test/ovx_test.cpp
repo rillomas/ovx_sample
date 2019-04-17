@@ -16,6 +16,35 @@ static void VX_CALLBACK log_callback(
 	printf("LOG[status: %d] %s", status, string);
 }
 
+static vx_status write_to_file(
+	vx_context ctx,
+	vx_image output_img,
+	const cv::Mat& output,
+	const std::string& out_path) {
+	// Transfer ownership to cv::Mat and write output image to file
+	vx_rectangle_t output_rect = {0, 0, (uint32_t)output.cols, (uint32_t)output.rows};
+	void* p = nullptr;
+	const uint32_t plane_index = 0;
+	vx_map_id output_map;
+	vx_imagepatch_addressing_t addr;
+	CHECK_VX_STATUS(ctx, vxMapImagePatch(
+			output_img,
+			&output_rect,
+			plane_index,
+			&output_map,
+			&addr,
+			&p,
+			VX_READ_ONLY,
+			VX_MEMORY_TYPE_HOST,
+			VX_NOGAP_X));
+	bool ok = cv::imwrite(out_path, output);
+	if (!ok) {
+		return VX_FAILURE;
+	}
+	// Release ownership
+	return vxUnmapImagePatch(output_img, output_map);
+}
+
 class OVXTestFixture : public ::testing::Test {
 protected:
 	virtual void SetUp() {
@@ -55,6 +84,7 @@ TEST_F(OVXTestFixture, RunBackProjection) {
 	EXPECT_EQ(VX_SUCCESS, vxReleaseNode(&n));
 	EXPECT_EQ(VX_SUCCESS, vxVerifyGraph(graph_));
 	EXPECT_EQ(VX_SUCCESS, vxProcessGraph(graph_));
+	EXPECT_EQ(VX_SUCCESS, write_to_file(ctx_, output_img, output, "lena_bright.png"));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&input_img));
 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&output_img));
 }

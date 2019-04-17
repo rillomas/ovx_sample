@@ -15,10 +15,9 @@ vx_df_image mat_type_to_image_format(vx_context ctx, int mat_type) {
 	case CV_8UC4:
 		return VX_DF_IMAGE_RGBX;
 	default:
-		vxAddLogEntry(
-			(vx_reference)ctx,
+		LOG_VX(ctx,
 			VX_ERROR_INVALID_FORMAT,
-			"Unsupported format: %d",
+			"Unsupported format: %d\n",
 			mat_type);
 		return 0;
 	}

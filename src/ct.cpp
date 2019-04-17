@@ -10,21 +10,41 @@ namespace ct {
 // Number of params for back projection
 constexpr int BACK_PROJECTION_PARAM_NUM = 2;
 
+static vx_size format_to_channel_num(vx_node node, vx_df_image format) {
+	switch (format) {
+		case VX_DF_IMAGE_RGB:
+			return 3;
+		case VX_DF_IMAGE_U8:
+		case VX_DF_IMAGE_U16:
+		case VX_DF_IMAGE_U32:
+		case VX_DF_IMAGE_S16:
+		case VX_DF_IMAGE_S32:
+			return 1;
+		default:
+			LOG_VX(node, VX_FAILURE, "Unsupported image format: %d\n", format);
+			return 0;
+	}
+}
+
 static Halide::Runtime::Buffer<uint8_t> map_and_convert(
 	vx_node node,
 	vx_image img,
 	vx_map_id *map,
 	vx_imagepatch_addressing_t *addr){
 	vx_uint32 width = 0, height = 0;
-	vx_size planes = 0;
+	vx_df_image format = VX_DF_IMAGE_VIRT;
+	CHECK_VX_STATUS(node, vxQueryImage(
+		img,
+		VX_IMAGE_FORMAT,
+		&format,
+		sizeof(vx_df_image)));
 	CHECK_VX_STATUS(node, vxQueryImage(img, VX_IMAGE_WIDTH,  &width,  sizeof(width)));
 	CHECK_VX_STATUS(node, vxQueryImage(img, VX_IMAGE_HEIGHT, &height, sizeof(height)));
-	CHECK_VX_STATUS(node, vxQueryImage(img, VX_IMAGE_PLANES, &planes, sizeof(planes)));
-
+	auto channels = format_to_channel_num(node, format);
 	vx_rectangle_t rect = { 0, 0, width, height };
 	void* ptr = nullptr;
 	CHECK_VX_STATUS(node, vxMapImagePatch(img,  &rect, 0, map, addr,  &ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X));
-	Halide::Runtime::Buffer<uint8_t> converted((uint8_t*)ptr, width, height, planes);
+	Halide::Runtime::Buffer<uint8_t> converted((uint8_t*)ptr, width, height, channels);
 	return converted;
 }
 
@@ -43,11 +63,7 @@ vx_status VX_CALLBACK back_projection_host(
 	auto result = VX_SUCCESS;
 	if (res != 0) {
 		result = VX_FAILURE;
-		vxAddLogEntry(
-			(vx_reference)node,
-			result,
-			"back_projection_basic failed: %d\n",
-			res);
+		LOG_VX(node, result, "back_projection_basic failed: %d\n", res);
 	}
 	CHECK_VX_STATUS(node, vxUnmapImagePatch(input, inmap));
 	CHECK_VX_STATUS(node, vxUnmapImagePatch(output, outmap));
@@ -71,10 +87,8 @@ vx_status back_projection_validator(
 		&in_format,
 		sizeof(vx_df_image)));
 	vx_uint32 width, height;
-	vx_size planes;
 	CHECK_VX_STATUS(node, vxQueryImage(in_img, VX_IMAGE_WIDTH, &width, sizeof(width)));
 	CHECK_VX_STATUS(node, vxQueryImage(in_img, VX_IMAGE_HEIGHT, &height, sizeof(height)));
-	CHECK_VX_STATUS(node, vxQueryImage(in_img, VX_IMAGE_PLANES, &planes, sizeof(planes)));
 	auto out_meta = metas[1];
 	CHECK_VX_STATUS(node, vxSetMetaFormatAttribute(out_meta, VX_IMAGE_FORMAT, &in_format, sizeof(in_format)));
 	CHECK_VX_STATUS(node, vxSetMetaFormatAttribute(out_meta, VX_IMAGE_WIDTH, &width, sizeof(width)));
@@ -97,12 +111,8 @@ vx_status register_user_kernel(vx_context ctx) {
 	CHECK_VX_STATUS(ctx, vxAddParameterToKernel(kernel, 1, VX_OUTPUT, VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
 	CHECK_VX_STATUS(ctx, vxFinalizeKernel(kernel));
 	CHECK_VX_STATUS(ctx, vxReleaseKernel(&kernel));
-	auto res = VX_SUCCESS;
-	vxAddLogEntry((vx_reference)ctx,
-		res,
-		"OK: registered user kernel %s\n",
-		BACK_PROJECTION_NAME.c_str());
-	return res;
+	LOG_INFO("OK: registered user kernel %s\n", BACK_PROJECTION_NAME.c_str());
+	return VX_SUCCESS;
 
 }
 

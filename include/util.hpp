@@ -14,6 +14,15 @@ namespace util {
 // Convert given status to a string for loggint	
 const char* status_to_str(vx_status e);
 
+#define LOG_INFO(...) printf(__VA_ARGS__)
+
+#define LOG_VX(ctx, stat, ...) \
+	vxAddLogEntry( \
+		(vx_reference)ctx, \
+		stat, \
+		__VA_ARGS__)
+
+
 // Check command to VX_SUCCESS and if it is not, log error
 #define CHECK_VX_STATUS(ctx, cmd) \
   { \
@@ -23,7 +32,7 @@ const char* status_to_str(vx_status e);
 				(vx_reference)ctx, \
 				stat, \
 				"VX API call failed: %s file: %s line: %d\n", \
-				status_to_str(stat), \
+				ovx::util::status_to_str(stat), \
 				__FILE__, \
 				__LINE__); \
 		} \
@@ -37,7 +46,7 @@ const char* status_to_str(vx_status e);
 				(vx_reference)ctx, \
 				stat, \
 				"Got invalid VX object: %s file: %s line: %d\n", \
-				status_to_str(stat), \
+				ovx::util::status_to_str(stat), \
 				__FILE__, \
 				__LINE__); \
 		} \
