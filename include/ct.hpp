@@ -8,14 +8,20 @@ namespace ct {
 constexpr int LIBRARY_ID = 1;
 
 enum class KernelID {
-	BACK_PROJECTION = VX_KERNEL_BASE(VX_ID_DEFAULT, LIBRARY_ID) + 0x001,
+	BACK_PROJECTION = VX_KERNEL_BASE(VX_ID_DEFAULT, LIBRARY_ID) + 0x0,
 };
 
-enum class BackendTarget {
-	GENERIC = VX_ENUM_BASE(VX_ID_DEFAULT, VX_ENUM_TARGET) + 0x001,
-	CPU_INTEL,
-	GPU_INTEL,
-};
+// This does not work with vxSetNodeTarget.
+// We get VX_ERROR_INVALID_PARAMETERS error.
+// enum class BackendTarget {
+// 	GENERIC = VX_ENUM_BASE(VX_ID_DEFAULT, VX_ENUM_TARGET) + 0x0,
+// 	CPU_INTEL = VX_ENUM_BASE(VX_ID_DEFAULT, VX_ENUM_TARGET) + 0x1,
+// 	GPU_INTEL = VX_ENUM_BASE(VX_ID_DEFAULT, VX_ENUM_TARGET) + 0x2,
+// };
+
+// const std::string TARGET_GENERIC = "app.ct.back_projection.generic";
+// const std::string TARGET_CPU_INTEL = "app.ct.back_projection.cpu.intel";
+// const std::string TARGET_GPU_INTEL = "app.ct.back_projection.gpu.intel";
 
 const std::string BACK_PROJECTION_NAME = "app.ct.back_projection";
 

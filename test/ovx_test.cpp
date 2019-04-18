@@ -94,31 +94,32 @@ TEST_F(OVXTestFixture, RunDefaultBackProjection) {
 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&output_img));
 }
 
-TEST_F(OVXTestFixture, RunCPUBackProjection) {
-	auto input = cv::imread("../test/data/lena.png");
-	EXPECT_FALSE(input.empty());
-	auto input_img = ovx::util::create_image_from_mat(ctx_, input);
-	EXPECT_EQ(VX_SUCCESS, GET_STATUS(input_img));
-	cv::Mat output(input.size(), input.type());
-	auto format = ovx::util::get_format(output);
-	vx_image output_img = vxCreateImageFromHandle(
-			ctx_,
-			ovx::util::mat_type_to_image_format(ctx_, output.type()),
-			&format,
-			(void**)&output.data,
-			VX_MEMORY_TYPE_HOST);
-	EXPECT_EQ(VX_SUCCESS, GET_STATUS(output_img));
-	auto n = ovx::ct::back_projection_node(graph_, input_img, output_img);
-	EXPECT_EQ(VX_SUCCESS, vxSetNodeTarget(n, (vx_enum)ovx::ct::BackendTarget::GENERIC, nullptr));
-	EXPECT_EQ(VX_SUCCESS, GET_STATUS(n));
-	EXPECT_EQ(VX_SUCCESS, vxReleaseNode(&n));
-	EXPECT_EQ(VX_SUCCESS, vxVerifyGraph(graph_));
-	auto start = std::chrono::high_resolution_clock::now();
-	EXPECT_EQ(VX_SUCCESS, vxProcessGraph(graph_));
-	auto end = std::chrono::high_resolution_clock::now();
-	auto usec = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-	std::cout << usec << " usec" << std::endl;
-	EXPECT_EQ(VX_SUCCESS, write_to_file(ctx_, output_img, output, "lena_bright.png"));
-	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&input_img));
-	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&output_img));
-}
+// TEST_F(OVXTestFixture, RunCPUBackProjection) {
+// 	auto input = cv::imread("../test/data/lena.png");
+// 	EXPECT_FALSE(input.empty());
+// 	auto input_img = ovx::util::create_image_from_mat(ctx_, input);
+// 	EXPECT_EQ(VX_SUCCESS, GET_STATUS(input_img));
+// 	cv::Mat output(input.size(), input.type());
+// 	auto format = ovx::util::get_format(output);
+// 	vx_image output_img = vxCreateImageFromHandle(
+// 			ctx_,
+// 			ovx::util::mat_type_to_image_format(ctx_, output.type()),
+// 			&format,
+// 			(void**)&output.data,
+// 			VX_MEMORY_TYPE_HOST);
+// 	EXPECT_EQ(VX_SUCCESS, GET_STATUS(output_img));
+// 	auto n = ovx::ct::back_projection_node(graph_, input_img, output_img);
+// 	EXPECT_EQ(VX_SUCCESS, vxSetNodeTarget(n, (vx_enum)ovx::ct::BackendTarget::GENERIC, nullptr));
+// 	// EXPECT_EQ(VX_SUCCESS, vxSetNodeTarget(n, VX_TARGET_STRING, ovx::ct::TARGET_GENERIC.c_str()));
+// 	EXPECT_EQ(VX_SUCCESS, GET_STATUS(n));
+// 	EXPECT_EQ(VX_SUCCESS, vxReleaseNode(&n));
+// 	EXPECT_EQ(VX_SUCCESS, vxVerifyGraph(graph_));
+// 	auto start = std::chrono::high_resolution_clock::now();
+// 	EXPECT_EQ(VX_SUCCESS, vxProcessGraph(graph_));
+// 	auto end = std::chrono::high_resolution_clock::now();
+// 	auto usec = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+// 	std::cout << usec << " usec" << std::endl;
+// 	EXPECT_EQ(VX_SUCCESS, write_to_file(ctx_, output_img, output, "lena_bright.png"));
+// 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&input_img));
+// 	EXPECT_EQ(VX_SUCCESS, vxReleaseImage(&output_img));
+// }

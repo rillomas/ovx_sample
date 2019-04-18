@@ -1,7 +1,7 @@
 #include "ct.hpp"
 #include "util.hpp"
 #include "HalideBuffer.h"
-#include "back_projection_basic.h"
+#include "back_projection_generic.h"
 using namespace ovx::util;
 
 namespace ovx {
@@ -59,7 +59,7 @@ vx_status VX_CALLBACK back_projection_host(
 	vx_imagepatch_addressing_t inaddr, outaddr;
 	auto inimg = map_and_convert(node, input, &inmap, &inaddr);
 	auto outimg = map_and_convert(node, output, &outmap, &outaddr);
-	auto res = back_projection_basic(inimg, outimg);
+	auto res = back_projection_generic(inimg, outimg);
 	auto result = VX_SUCCESS;
 	if (res != 0) {
 		result = VX_FAILURE;
@@ -120,14 +120,14 @@ vx_node back_projection_node(
 	vx_graph graph,
 	vx_image input,
 	vx_image output) {
-	auto context = vxGetContext((vx_reference)graph);
-	auto kernel = vxGetKernelByEnum(context, (vx_enum)ovx::ct::KernelID::BACK_PROJECTION);
-	CHECK_VX_OBJECT(graph, kernel);
+	auto ctx = vxGetContext((vx_reference)graph);
+	auto kernel = vxGetKernelByEnum(ctx, (vx_enum)ovx::ct::KernelID::BACK_PROJECTION);
+	CHECK_VX_OBJECT(ctx, kernel);
 	auto node = vxCreateGenericNode(graph, kernel);
-	CHECK_VX_OBJECT(graph, node);
-	CHECK_VX_STATUS(graph, vxSetParameterByIndex(node, 0, (vx_reference)input));
-	CHECK_VX_STATUS(graph, vxSetParameterByIndex(node, 1, (vx_reference)output));
-	CHECK_VX_STATUS(graph, vxReleaseKernel(&kernel));
+	CHECK_VX_OBJECT(ctx, node);
+	CHECK_VX_STATUS(ctx, vxSetParameterByIndex(node, 0, (vx_reference)input));
+	CHECK_VX_STATUS(ctx, vxSetParameterByIndex(node, 1, (vx_reference)output));
+	CHECK_VX_STATUS(ctx, vxReleaseKernel(&kernel));
 	return node;
 }
 
