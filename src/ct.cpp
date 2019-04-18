@@ -2,6 +2,7 @@
 #include "util.hpp"
 #include "HalideBuffer.h"
 #include "back_projection_generic.h"
+#include "back_projection_cpu.h"
 using namespace ovx::util;
 
 namespace ovx {
@@ -48,7 +49,7 @@ static Halide::Runtime::Buffer<uint8_t> map_and_convert(
 	return converted;
 }
 
-vx_status VX_CALLBACK back_projection_host(
+static vx_status VX_CALLBACK back_projection_generic_host(
 	vx_node node,
 	const vx_reference* refs,
 	vx_uint32 num) {
@@ -63,13 +64,34 @@ vx_status VX_CALLBACK back_projection_host(
 	auto result = VX_SUCCESS;
 	if (res != 0) {
 		result = VX_FAILURE;
-		LOG_VX(node, result, "back_projection_basic failed: %d\n", res);
+		LOG_VX(node, result, "back_projection_generic failed: %d\n", res);
 	}
 	CHECK_VX_STATUS(node, vxUnmapImagePatch(input, inmap));
 	CHECK_VX_STATUS(node, vxUnmapImagePatch(output, outmap));
 	return result;
 }
 
+static vx_status VX_CALLBACK back_projection_cpu_host(
+	vx_node node,
+	const vx_reference* refs,
+	vx_uint32 num) {
+	UNUSED(num);
+	auto input = (vx_image)refs[0];
+	auto output = (vx_image)refs[1];
+	vx_map_id inmap, outmap;
+	vx_imagepatch_addressing_t inaddr, outaddr;
+	auto inimg = map_and_convert(node, input, &inmap, &inaddr);
+	auto outimg = map_and_convert(node, output, &outmap, &outaddr);
+	auto res = back_projection_cpu(inimg, outimg);
+	auto result = VX_SUCCESS;
+	if (res != 0) {
+		result = VX_FAILURE;
+		LOG_VX(node, result, "back_projection_cpu failed: %d\n", res);
+	}
+	CHECK_VX_STATUS(node, vxUnmapImagePatch(input, inmap));
+	CHECK_VX_STATUS(node, vxUnmapImagePatch(output, outmap));
+	return result;
+}
 vx_status back_projection_validator(
 	vx_node node,
 	const vx_reference parameters[],
@@ -99,9 +121,9 @@ vx_status back_projection_validator(
 
 vx_status register_user_kernel(vx_context ctx) {
 	vx_kernel kernel = vxAddUserKernel(ctx,
-		BACK_PROJECTION_NAME.c_str(),
-		(vx_enum)KernelID::BACK_PROJECTION,
-		back_projection_host,
+		BACK_PROJECTION_GENERIC_NAME.c_str(),
+		(vx_enum)KernelID::BACK_PROJECTION_GENERIC,
+		back_projection_generic_host,
 		BACK_PROJECTION_PARAM_NUM,
 		back_projection_validator,
 		nullptr,
@@ -111,17 +133,46 @@ vx_status register_user_kernel(vx_context ctx) {
 	CHECK_VX_STATUS(ctx, vxAddParameterToKernel(kernel, 1, VX_OUTPUT, VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
 	CHECK_VX_STATUS(ctx, vxFinalizeKernel(kernel));
 	CHECK_VX_STATUS(ctx, vxReleaseKernel(&kernel));
-	LOG_INFO("OK: registered user kernel %s\n", BACK_PROJECTION_NAME.c_str());
+
+	kernel = vxAddUserKernel(ctx,
+		BACK_PROJECTION_CPU_NAME.c_str(),
+		(vx_enum)KernelID::BACK_PROJECTION_CPU,
+		back_projection_cpu_host,
+		BACK_PROJECTION_PARAM_NUM,
+		back_projection_validator,
+		nullptr,
+		nullptr);
+	CHECK_VX_OBJECT(ctx, kernel);
+	CHECK_VX_STATUS(ctx, vxAddParameterToKernel(kernel, 0, VX_INPUT,  VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
+	CHECK_VX_STATUS(ctx, vxAddParameterToKernel(kernel, 1, VX_OUTPUT, VX_TYPE_IMAGE,  VX_PARAMETER_STATE_REQUIRED));
+	CHECK_VX_STATUS(ctx, vxFinalizeKernel(kernel));
+	CHECK_VX_STATUS(ctx, vxReleaseKernel(&kernel));
+	LOG_INFO("OK: registered user kernel\n");
 	return VX_SUCCESS;
 
 }
 
-vx_node back_projection_node(
+vx_node back_projection_generic_node(
 	vx_graph graph,
 	vx_image input,
 	vx_image output) {
 	auto ctx = vxGetContext((vx_reference)graph);
-	auto kernel = vxGetKernelByEnum(ctx, (vx_enum)ovx::ct::KernelID::BACK_PROJECTION);
+	auto kernel = vxGetKernelByEnum(ctx, (vx_enum)ovx::ct::KernelID::BACK_PROJECTION_GENERIC);
+	CHECK_VX_OBJECT(ctx, kernel);
+	auto node = vxCreateGenericNode(graph, kernel);
+	CHECK_VX_OBJECT(ctx, node);
+	CHECK_VX_STATUS(ctx, vxSetParameterByIndex(node, 0, (vx_reference)input));
+	CHECK_VX_STATUS(ctx, vxSetParameterByIndex(node, 1, (vx_reference)output));
+	CHECK_VX_STATUS(ctx, vxReleaseKernel(&kernel));
+	return node;
+}
+
+vx_node back_projection_cpu_node(
+	vx_graph graph,
+	vx_image input,
+	vx_image output) {
+	auto ctx = vxGetContext((vx_reference)graph);
+	auto kernel = vxGetKernelByEnum(ctx, (vx_enum)ovx::ct::KernelID::BACK_PROJECTION_CPU);
 	CHECK_VX_OBJECT(ctx, kernel);
 	auto node = vxCreateGenericNode(graph, kernel);
 	CHECK_VX_OBJECT(ctx, node);
