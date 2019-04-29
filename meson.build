@@ -3,7 +3,7 @@ project('ovx_sample', 'cpp',
 cc = meson.get_compiler('cpp')
 INTEL_BASE_DIR = '/opt/intel/'
 VTUNE_DIR = join_paths(INTEL_BASE_DIR, 'system_studio_2019/vtune_amplifier/')
-OPENVINO_DIR = join_paths(INTEL_BASE_DIR, 'computer_vision_sdk')
+OPENVINO_DIR = join_paths(INTEL_BASE_DIR, 'openvino')
 OPENVX_DIR = join_paths(OPENVINO_DIR, 'openvx')
 OPENCV_DIR = join_paths(OPENVINO_DIR, 'opencv')
 SUB_PROJECT_DIR = 'subprojects'
